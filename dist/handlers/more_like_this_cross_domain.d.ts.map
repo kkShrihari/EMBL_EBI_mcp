@@ -1,0 +1,1 @@
+{"version":3,"file":"more_like_this_cross_domain.d.ts","sourceRoot":"","sources":["../../src/handlers/more_like_this_cross_domain.ts"],"names":[],"mappings":"AAEA,qBAAa,iCAAiC;IACtC,GAAG,CAAC,IAAI,EAAE;QACd,MAAM,EAAE,MAAM,CAAC;QACf,OAAO,EAAE,MAAM,CAAC;QAChB,YAAY,EAAE,MAAM,CAAC;QACrB,IAAI,CAAC,EAAE,MAAM,CAAC;KACf;;;;;;;;;;;;;CAkEF"}
