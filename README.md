@@ -95,8 +95,9 @@ This design improves reliability and avoids ambiguous action routing.
 
 chmod +x run.sh
 ./run.sh
-This will:
+```
 
+This will:
 Clean old artifacts
 Bundle the MCP server with esbuild
 Create embl_ebi_mcp.dxt
