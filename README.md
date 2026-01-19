@@ -96,7 +96,7 @@ This design improves reliability and avoids ambiguous action routing.
 chmod +x run.sh
 ./run.sh
 ```
-
+---
 This will:
 Clean old artifacts
 Bundle the MCP server with esbuild
@@ -115,7 +115,7 @@ One server: MCP supports a single stdio process
 Many tools: LLMs work best with atomic operations
 esbuild: Single-file, fast, reliable bundling
 No tsc: TypeScript is transpiled directly by esbuild
-
+---
 👤 Author
 Shrihari Kamalan Kumarguruparan
 
