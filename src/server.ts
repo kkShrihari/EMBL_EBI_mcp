@@ -1,35 +1,44 @@
 // ------------------------------------------------------
-// FORCE EXTENSION ROOT AS WORKING DIRECTORY
+// GLOBAL ERROR VISIBILITY (DXT REQUIRED)
 // ------------------------------------------------------
-import path from "path";
-import { fileURLToPath } from "url";
+process.on("uncaughtException", err => {
+  console.error("Uncaught exception:", err);
+});
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-process.chdir(__dirname);
-
-// ------------------------------------------------------
-// IMPORT TOOL HANDLERS (ALL 16)
-// ------------------------------------------------------
-import { EBISearchAllHandler } from "./handlers/search_all.js";
-import { EBISearchDomainHandler } from "./handlers/search_domain.js";
-import { EBIGetEntryHandler } from "./handlers/get_entry.js";
-import { EBICrossReferenceTargetedHandler } from "./handlers/xref_targeted.js";
-import { EBICrossReferenceAllHandler } from "./handlers/xref_all.js";
-import { EBICrossReferenceDomainHandler } from "./handlers/xref_domain.js";
-import { EBIAutocompleteHandler } from "./handlers/autocomplete.js";
-import { EBITopTermsHandler } from "./handlers/top_terms.js";
-import { EBISeqToolResultsSearchHandler } from "./handlers/seqtool_results.js";
-import { EBIMoreLikeThisSameDomainHandler } from "./handlers/more_like_this_same_domain.js";
-import { EBIMoreLikeThisCrossDomainHandler } from "./handlers/more_like_this_cross_domain.js";
-import { EBIGetRawDataHandler } from "./handlers/get_raw_data.js";
-import { EBISummarySuggestionsHandler } from "./handlers/summary_suggestions.js";
-import { EBISummaryIdentificationHandler } from "./handlers/summary_identification.js";
-import { EBISummaryMultiReferenceHandler } from "./handlers/summary_multireference.js";
-import { EBISummaryDetailsHandler } from "./handlers/summary_details.js";
+process.on("unhandledRejection", err => {
+  console.error("Unhandled rejection:", err);
+});
 
 // ------------------------------------------------------
-// MCP SERVER SETUP
+// IMPORT SEARCH HANDLERS
+// ------------------------------------------------------
+import { EBISearchAllHandler } from "./handlers/search/handlers/search_all.js";
+import { EBISearchDomainHandler } from "./handlers/search/handlers/search_domain.js";
+import { EBIGetEntryHandler } from "./handlers/search/handlers/get_entry.js";
+import { EBICrossReferenceTargetedHandler } from "./handlers/search/handlers/xref_targeted.js";
+import { EBICrossReferenceAllHandler } from "./handlers/search/handlers/xref_all.js";
+import { EBICrossReferenceDomainHandler } from "./handlers/search/handlers/xref_domain.js";
+import { EBIMoreLikeThisSameDomainHandler } from "./handlers/search/handlers/more_like_this_same_domain.js";
+import { EBIMoreLikeThisCrossDomainHandler } from "./handlers/search/handlers/more_like_this_cross_domain.js";
+import { EBISummarySuggestionsHandler } from "./handlers/search/handlers/summary_suggestions.js";
+import { EBISummaryIdentificationHandler } from "./handlers/search/handlers/summary_identification.js";
+import { EBISummaryMultiReferenceHandler } from "./handlers/search/handlers/summary_multireference.js";
+import { EBISummaryDetailsHandler } from "./handlers/search/handlers/summary_details.js";
+
+// ------------------------------------------------------
+// IMPORT PROTEIN HANDLERS
+// ------------------------------------------------------
+import { ProteinIdentityHandler } from "./handlers/Protein/handlers/proteins_.js";
+import { ProteinFeaturesHandler } from "./handlers/Protein/handlers/features.js";
+import { ProteinProteomicsHandler } from "./handlers/Protein/handlers/proteomics.js";
+import { ProteinProteomesHandler } from "./handlers/Protein/handlers/proteomes.js";
+import { ProteinTaxonomyHandler } from "./handlers/Protein/handlers/taxonomy.js";
+import { ProteinCoordinatesHandler } from "./handlers/Protein/handlers/coordinates.js";
+import { ProteinUniParcHandler } from "./handlers/Protein/handlers/uniparc.js";
+import { ProteinAccessionAnnotationsHandler } from "./handlers/Protein/handlers/protein_accession_annotations.js";
+
+// ------------------------------------------------------
+// MCP SDK IMPORTS
 // ------------------------------------------------------
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -40,42 +49,55 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 
 // ------------------------------------------------------
-// INSTANTIATE HANDLERS
+// INSTANTIATE TOOLS (SEARCH + PROTEIN)
 // ------------------------------------------------------
 const tools = {
+  // -------- SEARCH --------
   search_all: new EBISearchAllHandler(),
   search_domain: new EBISearchDomainHandler(),
-  get_entry: new EBIGetEntryHandler(),
-  xref_targeted: new EBICrossReferenceTargetedHandler(),
-  xref_all: new EBICrossReferenceAllHandler(),
-  xref_domain: new EBICrossReferenceDomainHandler(),
-  autocomplete: new EBIAutocompleteHandler(),
-  top_terms: new EBITopTermsHandler(),
-  seqtool_results: new EBISeqToolResultsSearchHandler(),
-  more_like_this_same_domain: new EBIMoreLikeThisSameDomainHandler(),
-  more_like_this_cross_domain: new EBIMoreLikeThisCrossDomainHandler(),
-  get_raw_data: new EBIGetRawDataHandler(),
-  summary_suggestions: new EBISummarySuggestionsHandler(),
-  summary_identification: new EBISummaryIdentificationHandler(),
-  summary_multireference: new EBISummaryMultiReferenceHandler(),
-  summary_details: new EBISummaryDetailsHandler()
+  search_get_entry: new EBIGetEntryHandler(),
+  search_xref_targeted: new EBICrossReferenceTargetedHandler(),
+  search_xref_all: new EBICrossReferenceAllHandler(),
+  search_xref_domain: new EBICrossReferenceDomainHandler(),
+  search_more_like_this_same_domain: new EBIMoreLikeThisSameDomainHandler(),
+  search_more_like_this_cross_domain: new EBIMoreLikeThisCrossDomainHandler(),
+  search_summary_suggestions: new EBISummarySuggestionsHandler(),
+  search_summary_identification: new EBISummaryIdentificationHandler(),
+  search_summary_multireference: new EBISummaryMultiReferenceHandler(),
+  search_summary_details: new EBISummaryDetailsHandler(),
+
+  // -------- PROTEIN --------
+  protein_identity: new ProteinIdentityHandler(),
+  protein_features: new ProteinFeaturesHandler(),
+  protein_proteomics: new ProteinProteomicsHandler(),
+  protein_proteomes: new ProteinProteomesHandler(),
+  protein_taxonomy: new ProteinTaxonomyHandler(),
+  protein_coordinates: new ProteinCoordinatesHandler(),
+  protein_uniparc: new ProteinUniParcHandler(),
+  protein_accession_annotations: new ProteinAccessionAnnotationsHandler()
 };
 
 // ------------------------------------------------------
 // CREATE MCP SERVER
 // ------------------------------------------------------
 const server = new Server(
-  { name: "search_mcp", version: "1.0.0" },
-  { capabilities: { tools: {}, sampling: {}, roots: {} } }
+  { name: "embl_ebi_mcp", version: "1.0.0" },
+  {
+    capabilities: {
+      tools: { list: true, call: true }
+    }
+  }
 );
 
 // ------------------------------------------------------
-// INITIALIZE
+// INITIALIZE HANDLER
 // ------------------------------------------------------
 server.setRequestHandler(InitializeRequestSchema, async () => ({
   protocolVersion: "2025-06-18",
-  serverInfo: { name: "search_mcp", version: "1.0.0" },
-  capabilities: { tools: { list: true, call: true } }
+  serverInfo: { name: "embl_ebi_mcp", version: "1.0.0" },
+  capabilities: {
+    tools: { list: true, call: true }
+  }
 }));
 
 // ------------------------------------------------------
@@ -84,13 +106,13 @@ server.setRequestHandler(InitializeRequestSchema, async () => ({
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: Object.keys(tools).map(name => ({
     name,
-    description: `EBI Search tool: ${name}`,
+    description: `EMBL-EBI MCP tool: ${name}`,
     inputSchema: { type: "object" }
   }))
 }));
 
 // ------------------------------------------------------
-// CALL TOOL ROUTER
+// CALL TOOL
 // ------------------------------------------------------
 server.setRequestHandler(CallToolRequestSchema, async (req) => {
   const { name, arguments: args } = req.params;
@@ -99,23 +121,27 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
     if (!(name in tools)) {
       throw new Error(`Unknown tool: ${name}`);
     }
+
     return await (tools as any)[name].run(args ?? {});
   } catch (err: any) {
+    console.error(`Tool error (${name}):`, err);
     return {
       isError: true,
-      content: [{ type: "text", text: err.message || String(err) }]
+      content: [{ type: "text", text: err?.message ?? String(err) }]
     };
   }
 });
 
 // ------------------------------------------------------
-// START SERVER
+// START SERVER (DXT SAFE)
 // ------------------------------------------------------
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("EBI Search MCP connected");
+  console.error("EMBL-EBI MCP connected");
+  process.stdin.resume(); // REQUIRED for Claude Desktop
 }
 
-main().catch(console.error);
-setInterval(() => {}, 1 << 30);
+main().catch(err => {
+  console.error("Fatal MCP startup error:", err);
+});

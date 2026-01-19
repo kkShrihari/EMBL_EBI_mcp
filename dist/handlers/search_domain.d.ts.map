@@ -1,1 +1,0 @@
-{"version":3,"file":"search_domain.d.ts","sourceRoot":"","sources":["../../src/handlers/search_domain.ts"],"names":[],"mappings":"AAEA,qBAAa,sBAAsB;IAC3B,GAAG,CAAC,IAAI,EAAE;QACd,MAAM,EAAE,MAAM,CAAC;QACf,KAAK,EAAE,MAAM,CAAC;QACd,IAAI,CAAC,EAAE,MAAM,CAAC;QACd,KAAK,CAAC,EAAE,MAAM,CAAC;KAChB;;;;;;;;;;;;CA6DF"}

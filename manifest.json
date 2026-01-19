@@ -1,19 +1,21 @@
 {
   "manifest_version": "0.2",
-  "name": "ebi.search.mcp",
-  "display_name": "EBI Search MCP",
+  "name": "embl_ebi_mcp",
+  "display_name": "EMBL-EBI MCP",
   "version": "1.0.0",
-  "description": "MCP server exposing EMBL-EBI Search and Summary (S4) REST APIs, including global search, domain search, entry retrieval, cross-references, autocomplete, analytics, and biological summaries.",
+
+  "description": "Unified MCP server exposing EMBL-EBI Search, Summary (S4), and UniProt Protein APIs, including global and domain search, entry retrieval, cross-references, biological summaries, protein identity, features, proteomics, proteomes, taxonomy, coordinates, UniParc, and accession annotations.",
+
   "author": {
     "name": "Shrihari Kamalan Kumarguruparan"
   },
 
   "server": {
     "type": "node",
-    "entry_point": "dist/index.js",
+    "entry_point": "dist/server.js",
     "mcp_config": {
       "command": "node",
-      "args": ["${__dirname}/dist/index.js"]
+      "args": ["${__dirname}/dist/server.js"]
     }
   },
 
@@ -27,40 +29,77 @@
       "description": "Search within a specific EMBL-EBI domain (e.g. UniProt, Ensembl, Literature)."
     },
     {
-      "name": "get_entry",
+      "name": "search_get_entry",
       "description": "Retrieve full metadata for one or more entries from a domain."
     },
     {
-      "name": "xref_targeted",
+      "name": "search_xref_targeted",
       "description": "Retrieve cross-references from a source entry to a specific target domain."
     },
     {
-      "name": "xref_all",
+      "name": "search_xref_all",
       "description": "Retrieve all cross-references for a given entry across all linked domains."
     },
     {
-      "name": "xref_domain",
+      "name": "search_xref_domain",
       "description": "Discover which domains are cross-referenced by a given source domain."
     },
     {
-      "name": "seqtool_results",
-      "description": "Search results produced by EMBL-EBI sequence analysis tools."
-    },
-    {
-      "name": "more_like_this_same_domain",
+      "name": "search_more_like_this_same_domain",
       "description": "Find biologically similar entries within the same domain."
     },
     {
-      "name": "more_like_this_cross_domain",
+      "name": "search_more_like_this_cross_domain",
       "description": "Find biologically related entries in a different target domain."
     },
     {
-      "name": "summary_suggestions",
+      "name": "search_summary_suggestions",
       "description": "Get suggested biological summary terms using the EBI Summary (S4) API."
     },
     {
-      "name": "summary_identification",
+      "name": "search_summary_identification",
       "description": "Resolve and identify mixed or ambiguous biological identifiers."
+    },
+    {
+      "name": "search_summary_multireference",
+      "description": "Summarize biological entities across multiple references."
+    },
+    {
+      "name": "search_summary_details",
+      "description": "Retrieve detailed biological summaries for a given entity."
+    },
+
+    {
+      "name": "protein_identity",
+      "description": "Retrieve UniProt protein identity and core metadata by accession."
+    },
+    {
+      "name": "protein_features",
+      "description": "Retrieve curated UniProt protein features such as domains, regions, and sites."
+    },
+    {
+      "name": "protein_proteomics",
+      "description": "Retrieve peptide-level proteomics evidence including PTM, non-PTM, and HPP data."
+    },
+    {
+      "name": "protein_proteomes",
+      "description": "Retrieve proteome-level metadata and organism coverage from UniProt."
+    },
+    {
+      "name": "protein_taxonomy",
+      "description": "Retrieve taxonomy information associated with UniProt protein entries."
+    },
+    {
+      "name": "protein_coordinates",
+      "description": "Retrieve genomic coordinate mappings for UniProt protein accessions."
+    },
+    {
+      "name": "protein_uniparc",
+      "description": "Access UniParc non-redundant protein sequence archive and sequence identity mappings."
+    },
+    {
+      "name": "protein_accession_annotations",
+      "description": "Retrieve accession-level annotations linked to UniProt protein records."
     }
   ],
 
@@ -68,7 +107,7 @@
 
   "compatibility": {
     "claude_desktop": ">=1.0.0",
-    "platforms": ["win32", "linux", "darwin"],
+    "platforms": ["win32"],
     "runtimes": {
       "node": ">=18.0.0"
     }

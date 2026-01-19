@@ -1,1 +1,0 @@
-{"version":3,"file":"top_terms.d.ts","sourceRoot":"","sources":["../../src/handlers/top_terms.ts"],"names":[],"mappings":"AAEA,qBAAa,kBAAkB;IACvB,GAAG,CAAC,IAAI,EAAE;QACd,MAAM,EAAE,MAAM,CAAC;QACf,OAAO,EAAE,MAAM,CAAC;QAChB,IAAI,CAAC,EAAE,MAAM,CAAC;KACf;;;;;;;;;;;CA4EF"}

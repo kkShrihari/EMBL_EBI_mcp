@@ -13,7 +13,7 @@ echo "🔹 Starting miEAA3 MCP build & packaging process..."
 # ----------------------------------------
 
 echo "🧹 Removing old build artifacts..."
-rm -rf mieaa3_mcp.dxt
+rm -rf embl_ebi_mcp.dxt
 rm -rf dist
 
 # ----------------------------------------
@@ -36,7 +36,7 @@ npx esbuild src/server.ts \
 
 echo "📦 Creating miEAA3_mcp.dxt package..."
 
-zip -r miEAA3_mcp.dxt \
+zip -r embl_ebi_mcp.dxt \
   manifest.json \
   package.json \
   package-lock.json \
@@ -52,7 +52,7 @@ DEST="/mnt/c/Users/ASUS/Downloads/mcp"
 
 echo "📁 Copying package to $DEST ..."
 mkdir -p "$DEST"
-cp miEAA3_mcp.dxt "$DEST/"
+cp embl_ebi_mcp.dxt "$DEST/"
 
 echo "✅ Build and packaging complete!"
-echo "📦 Package location: $DEST/miEAA3_mcp.dxt"
+echo "📦 Package location: $DEST/embl_ebi_mcp.dxt"
