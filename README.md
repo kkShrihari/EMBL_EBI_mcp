@@ -34,22 +34,8 @@ This project provides **atomic, LLM-friendly tools** for biological search and p
 
 ## 📁 Project Structure
 
-EMBL_EBI_mcp/
-├── src/
-│ ├── server.ts # Single unified MCP server
-│ └── handlers/
-│ ├── search/
-│ │ └── handlers/ # Search + Summary tools
-│ └── Protein/
-│ └── handlers/ # UniProt protein tools
-├── dist/
-│ └── server.js # Bundled MCP executable (generated)
-├── manifest.json # MCP tool manifest
-├── run.sh # Build + package script
-├── package.json
-├── package-lock.json
-├── embl_ebi_mcp.dxt # Claude Desktop package (generated)
-└── README.md
+<img width="588" height="563" alt="image" src="https://github.com/user-attachments/assets/f26e04ac-7fd6-417e-8efe-a9bb34ff5db0" />
+
 
 markdown
 Copy code
