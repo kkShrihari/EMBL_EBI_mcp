@@ -1,12 +1,7 @@
 #!/bin/bash
+set -e
 
-# ----------------------------------------
-# Build and package miEAA3 MCP server
-# ----------------------------------------
-
-set -e  # Exit immediately if any command fails
-
-echo "🔹 Starting miEAA3 MCP build & packaging process..."
+echo "🔹 Starting EMBL-EBI MCP build & packaging process..."
 
 # ----------------------------------------
 # Step 1: Clean old artifacts
@@ -17,35 +12,34 @@ rm -rf embl_ebi_mcp.dxt
 rm -rf dist
 
 # ----------------------------------------
-# Step 2: Build TypeScript → JavaScript
+# Step 2: Build with esbuild ONLY
 # ----------------------------------------
 
-echo "⚙️ Running TypeScript build..."
-npm run build
+echo "⚙️ Bundling MCP server with esbuild..."
+
 npx esbuild src/server.ts \
   --bundle \
   --platform=node \
   --format=esm \
   --target=node18 \
   --outfile=dist/server.js \
-  --log-level=debug
+  --log-level=info
 
 # ----------------------------------------
-# Step 3: Package into .dxt for Claude MCP
+# Step 3: Package into .dxt
 # ----------------------------------------
 
-echo "📦 Creating miEAA3_mcp.dxt package..."
+echo "📦 Creating embl_ebi_mcp.dxt package..."
 
 zip -r embl_ebi_mcp.dxt \
   manifest.json \
   package.json \
   package-lock.json \
-  tsconfig.json \
   dist \
   -x "*.ts" "*.map" "*.log"
 
 # ----------------------------------------
-# Step 4: Copy package to Windows Downloads
+# Step 4: Copy package
 # ----------------------------------------
 
 DEST="/mnt/c/Users/ASUS/Downloads/mcp"
