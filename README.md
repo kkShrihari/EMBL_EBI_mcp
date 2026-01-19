@@ -97,25 +97,26 @@ chmod +x run.sh
 ./run.sh
 ```
 
-- This will:
+### This will:
 - Clean old artifacts
 - Bundle the MCP server with esbuild
 - Create embl_ebi_mcp.dxt
 - Copy it to your Claude MCP directory
 
-- 📦 Claude Desktop Installation
+###  📦 Claude Desktop Installation
 - Open Claude Desktop
 - Go to Settings → MCP
 - Install embl_ebi_mcp.dxt
 - Restart Claude
 - Verify tools appear under EMBL-EBI MCP
 
-- 🧠 Design Decisions
+### 🧠 Design Decisions
 - One server: MCP supports a single stdio process
 - Many tools: LLMs work best with atomic operations
 - esbuild: Single-file, fast, reliable bundling
 - No tsc: TypeScript is transpiled directly by esbuild
----
+
+
 👤 Author
 Shrihari Kamalan Kumarguruparan
 
