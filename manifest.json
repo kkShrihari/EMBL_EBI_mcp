@@ -100,6 +100,46 @@
     {
       "name": "protein_accession_annotations",
       "description": "Retrieve accession-level annotations linked to UniProt protein records."
+    },
+    {
+      "name": "pdbe_beacons",
+      "description": "Retrieve PDB structural coverage, chains, and residue-level annotations for UniProt proteins using the PDBe 3D-Beacons API. Accepts UniProt accessions or UniProt entry names, with optional residue ranges."
+    },
+    {
+      "name": "pdbe_complex",
+      "description": "Retrieve macromolecular complex information from PDBe, including symmetry, participants, assemblies, interactions, bound molecules, PISA parameters, and complex identifier history. Accepts PDB IDs, PDB Complex IDs, Complex Portal IDs, or UniProt/Rfam accessions depending on the selected action."
+    },
+    {
+      "name": "pdbe_variantRelated",
+      "description": "Retrieve residue-level structural, ligand, interaction, and annotation context for protein variants using the PDBe PepVEP API. Accepts UniProt accessions with one or more amino-acid positions as input."
+    },
+    {
+      "name": "pdbe_topology",
+      "description": "Retrieve 2D secondary structure topology for protein chains from PDBe, including helices, strands, coils, termini, and layout coordinates derived from PDBsum. Accepts a PDB entry ID with an optional chain ID as input."
+    },
+    {
+      "name": "pdbe_rfamMappings",
+      "description": "Retrieve nucleic acid mappings between PDB structures and Rfam or related sequence domain resources. Accepts either a PDB ID or an Rfam accession and returns residue-level chain mappings with safe, summarized output."
+    },
+    {
+      "name": "pdbe_pisa",
+      "description": "Retrieve detailed macromolecular interface information from PDBe PISA, including interface area, energetics, interacting residues, bonds, and participating molecules. Requires PDB ID, assembly ID, and interface ID as input."
+    },
+    {
+      "name": "pdbe_compounds",
+      "description": "Retrieve chemical compound information from PDBe, including similarity relationships, structural subcomponents, physicochemical summaries, interaction statistics, and UniProt protein associations. Accepts PDB ligand hetcodes as input."
+    },
+    {
+      "name": "pdbe_uniprot",
+      "description": "Access PDBe-KB UniProt-centric data including structures, domains, ligands, interactions, complexes, conservation, variation, and LLM annotations. Supports summarized, size-limited outputs suitable for LLM tool usage."
+    },
+    {
+      "name": "pdbe_validation",
+      "description": "Access PDBe wwPDB validation data including geometry outliers, Ramachandran and sidechain quality, clashes, refinement statistics, global percentiles, residue-wise outliers, and NMR validation results. Supports GET and POST endpoints with size-limited, normalized outputs suitable for LLM tool usage."
+    },
+    {
+      "name": "pdbe_sifts",
+      "description": "Access PDBe SIFTS mappings and topology data, including PDB ↔ UniProt isoforms, Ensembl, Pfam, InterPro, CATH, SCOP, GO, EC, UniRef90, Homologene clusters, best structures, UniProt publications, and 2D topology layouts. All endpoints are normalized, size-limited, and safely handled for heterogeneous or empty biological responses."
     }
   ],
 
