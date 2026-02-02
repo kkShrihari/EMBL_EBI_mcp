@@ -38,6 +38,19 @@ import { ProteinUniParcHandler } from "./handlers/Protein/handlers/uniparc.js";
 import { ProteinAccessionAnnotationsHandler } from "./handlers/Protein/handlers/protein_accession_annotations.js";
 
 // ------------------------------------------------------
+// IMPORT PDBe HANDLERS
+// ------------------------------------------------------
+import { PDBeBeaconsHandler } from "./handlers/PDBe/handlers/3DBeacons.js";
+import { PDBeComplexHandler } from "./handlers/PDBe/handlers/complex.js";
+import { PDBeVariantRelatedHandler } from "./handlers/PDBe/handlers/variant_related.js";
+import { PDBeTopologyHandler } from "./handlers/PDBe/handlers/topology.js";
+import {PDBeRfamMappingsHandler} from "./handlers/PDBe/handlers/Rfam.js";
+import {PDBePisaInterfaceHandler} from "./handlers/PDBe/handlers/Pisa.js";
+import {PDBeCompoundsHandler} from "./handlers/PDBe/handlers/compounds.js";
+import {PDBeUniProtHandler} from "./handlers/PDBe/handlers/uniprot.js";
+import {PDBeValidationHandler} from "./handlers/PDBe/handlers/validation.js"
+import {PDBeMappingsAndTopologyHandler} from "./handlers/PDBe/handlers/sifts.js"
+// ------------------------------------------------------
 // MCP SDK IMPORTS
 // ------------------------------------------------------
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -74,7 +87,19 @@ const tools = {
   protein_taxonomy: new ProteinTaxonomyHandler(),
   protein_coordinates: new ProteinCoordinatesHandler(),
   protein_uniparc: new ProteinUniParcHandler(),
-  protein_accession_annotations: new ProteinAccessionAnnotationsHandler()
+  protein_accession_annotations: new ProteinAccessionAnnotationsHandler(),
+
+  // -------- PDBe / 3D-BEACONS --------
+  pdbe_beacons: new PDBeBeaconsHandler(),
+  pdbe_complex: new PDBeComplexHandler(),
+  pdbe_variantRelated: new PDBeVariantRelatedHandler(),
+  pdbe_topology: new PDBeTopologyHandler(),
+  pdbe_rfamMappings: new PDBeRfamMappingsHandler(),
+  pdbe_pisa: new PDBePisaInterfaceHandler(),
+  pdbe_compounds: new PDBeCompoundsHandler(),
+  pdbe_uniport: new PDBeUniProtHandler(),
+  pdbe_validation: new PDBeValidationHandler(),
+  pdbe_sifts: new PDBeMappingsAndTopologyHandler()
 };
 
 // ------------------------------------------------------
