@@ -1,36 +1,42 @@
-import fetch, { HeadersInit, RequestInit } from "node-fetch";
+import fetch from "node-fetch";
 
-/**
- * UniParc API base
- */
 const BASE_URL = "https://rest.uniprot.org";
+
+/* ---------------------------------
+   TYPES
+---------------------------------- */
+
+type UniParcAction =
+  | "by_accession"
+  | "bestguess"
+  | "by_dbreference"
+  | "by_proteome"
+  | "by_sequence"
+  | "by_upi";
+
+interface UniParcArgs {
+  action: UniParcAction;
+  accession?: string;
+  dbid?: string;
+  upid?: string;
+  upi?: string;
+  sequence?: string;
+  query?: string;
+  size?: number;
+}
 
 /* ---------------------------------
    HELPERS
 ---------------------------------- */
 
-/** normalize size: default 3, max 10 */
-function normalizeSize(size?: number) {
+function normalizeSize(size?: number): number {
   if (!size) return 3;
-  return Math.min(Math.max(size, 3), 10);
+  return Math.min(Math.max(size, 1), 10);
 }
 
-/** safe JSON fetch */
-async function fetchJson(
-  url: string,
-  options?: RequestInit
-): Promise<any> {
-  const headers: HeadersInit = {
-    Accept: "application/json"
-  };
-
-  if (options?.headers) {
-    Object.assign(headers as any, options.headers);
-  }
-
+async function fetchJson(url: string): Promise<any> {
   const res = await fetch(url, {
-    ...options,
-    headers
+    headers: { Accept: "application/json" }
   });
 
   if (!res.ok) {
@@ -43,21 +49,18 @@ async function fetchJson(
   return res.json();
 }
 
-/** keep only important UniParc fields (max 10) */
-function trimUniParcEntry(entry: any) {
+function trimUniParcEntry(entry: any): any {
   if (!entry || typeof entry !== "object") return entry;
 
   const keys = [
     "upi",
+    "sequence",
     "sequenceLength",
     "crc64",
     "md5",
     "taxonId",
     "organism",
-    "proteinName",
-    "uniProtKBAccessions",
-    "proteomes",
-    "sequence"
+    "uniProtKBAccessions"
   ];
 
   return Object.fromEntries(
@@ -65,8 +68,7 @@ function trimUniParcEntry(entry: any) {
   );
 }
 
-/** trim result list */
-function trimResults(results: any[], limit: number) {
+function trimResults(results: any[], limit: number): any[] {
   return (results ?? []).slice(0, limit).map(trimUniParcEntry);
 }
 
@@ -75,153 +77,84 @@ function trimResults(results: any[], limit: number) {
 ---------------------------------- */
 
 export class ProteinUniParcHandler {
-  async run(args: {
-    action:
-      | "search"
-      | "by_accession"
-      | "bestguess"
-      | "by_dbreference"
-      | "by_proteome"
-      | "by_sequence"
-      | "by_upi";
-    accession?: string;
-    dbid?: string;
-    upid?: string;
-    upi?: string;
-    sequence?: string;
-    query?: string;
-    size?: number;
-  }) {
+  async run(args: UniParcArgs): Promise<any> {
     const size = normalizeSize(args.size);
     let data: any;
 
-    /* ---------- SEARCH ---------- */
-    if (args.action === "search") {
-      const params = new URLSearchParams({
-        ...(args.query ? { query: args.query } : {}),
-        format: "json",
-        size: String(size)
-      });
-
-      const raw = await fetchJson(
-        `${BASE_URL}/uniparc?${params.toString()}`
-      );
-
-      data = {
-        total: raw.total,
-        results: trimResults(raw.results, size)
-      };
-    }
-
     /* ---------- BY ACCESSION ---------- */
-    else if (args.action === "by_accession") {
-      if (!args.accession) throw new Error("accession required");
-
+    if (args.action === "by_accession") {
       const raw = await fetchJson(
-        `${BASE_URL}/uniparc/accession/${encodeURIComponent(
-          args.accession
-        )}?format=json`
+        `${BASE_URL}/uniparc/accession/${args.accession}`
       );
-
       data = trimUniParcEntry(raw);
     }
 
     /* ---------- BEST GUESS ---------- */
     else if (args.action === "bestguess") {
-      if (!args.query) throw new Error("query required");
+      const params = new URLSearchParams();
 
-      const params = new URLSearchParams({
-        query: args.query,
-        format: "json"
-      });
+      if (args.query?.startsWith("UPI")) {
+        params.set("upis", args.query);
+      } else if (/^[A-NR-Z][0-9][A-Z0-9]{3}[0-9]$/.test(args.query ?? "")) {
+        params.set("accessions", args.query!);
+      } else {
+        params.set("genes", args.query!);
+      }
 
-      const raw = await fetchJson(
-        `${BASE_URL}/uniparc/bestguess?${params.toString()}`
-      );
+      const raw = (await fetchJson(
+        `${BASE_URL}/uniparc/bestguess?${params}`
+      )) as { results?: any[] } | null;
 
-      data = trimResults(raw.results, size);
+      data = raw?.results ? trimResults(raw.results, size) : [];
     }
 
     /* ---------- DB REFERENCE ---------- */
     else if (args.action === "by_dbreference") {
-      if (!args.dbid) throw new Error("dbid required");
+      const raw = (await fetchJson(
+        `${BASE_URL}/uniparc/dbreference/${args.dbid}`
+      )) as { results?: any[] };
 
-      const raw = await fetchJson(
-        `${BASE_URL}/uniparc/dbreference/${encodeURIComponent(
-          args.dbid
-        )}?format=json`
-      );
-
-      data = trimResults(raw.results, size);
-    }
-
-    /* ---------- PROTEOME ---------- */
-    else if (args.action === "by_proteome") {
-      if (!args.upid) throw new Error("upid required");
-
-      const raw = await fetchJson(
-        `${BASE_URL}/uniparc/proteome/${encodeURIComponent(
-          args.upid
-        )}?format=json`
-      );
-
-      data = trimResults(raw.results, size);
-    }
-
-    /* ---------- BY SEQUENCE (POST) ---------- */
-    else if (args.action === "by_sequence") {
-      if (!args.sequence) throw new Error("sequence required");
-
-      const raw = await fetchJson(
-        `${BASE_URL}/uniparc/sequence`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sequence: args.sequence })
-        }
-      );
-
-      data = trimResults(raw.results, size);
+      data = trimResults(raw.results ?? [], size);
     }
 
     /* ---------- BY UPI ---------- */
     else if (args.action === "by_upi") {
-      if (!args.upi) throw new Error("upi required");
-
       const raw = await fetchJson(
-        `${BASE_URL}/uniparc/upi/${encodeURIComponent(
-          args.upi
-        )}?format=json`
+        `${BASE_URL}/uniparc/${args.upi}`
       );
-
       data = trimUniParcEntry(raw);
+    }
+
+    /* ---------- PROTEOME (GRACEFUL) ---------- */
+    else if (args.action === "by_proteome") {
+      data = {
+        notice: "UniParc does not support proteome-level queries.",
+        recommendation: "Use UniProtKB proteome endpoints instead.",
+        requestedProteome: args.upid,
+        returnedEntries: 0
+      };
+    }
+
+    /* ---------- SEQUENCE (GRACEFUL) ---------- */
+    else if (args.action === "by_sequence") {
+      data = {
+        notice: "UniParc does not support sequence-based search.",
+        recommendation: "Use UniProtKB search or BLAST services.",
+        sequenceLength: args.sequence?.length ?? 0,
+        returnedEntries: 0
+      };
     }
 
     else {
       throw new Error(`Unknown action: ${args.action}`);
     }
 
-    /* ---------- RESPONSE ---------- */
     return {
       structuredContent: {
         action: args.action,
-        count: Array.isArray(data)
-          ? data.length
-          : Array.isArray(data?.results)
-          ? data.results.length
-          : 1,
+        count: Array.isArray(data) ? data.length : 1,
         data
-      },
-      content: [
-        {
-          type: "text",
-          text: JSON.stringify(
-            { action: args.action, data },
-            null,
-            2
-          )
-        }
-      ]
+      }
     };
   }
 }

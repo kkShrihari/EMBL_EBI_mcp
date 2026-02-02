@@ -1,236 +1,221 @@
 import fetch from "node-fetch";
+import { TextDecoder } from "util";
 
-const BASE_URL = "https://rest.uniprot.org";
+const BASE_URL = "https://www.ebi.ac.uk/proteins/api";
 
-/**
- * UniProt Coordinates handler
- *
- * Covers:
- *
- * - GET /coordinates
- * - GET /coordinates/glocation/{taxonomy}/{chromosome}:{gPosition}
- * - GET /coordinates/glocation/{taxonomy}/{chromosome}:{gstart}-{gend}
- * - GET /coordinates/location/{accession}:{pPosition}
- * - GET /coordinates/location/{accession}:{pStart}-{pEnd}
- * - GET /coordinates/{accession}
- * - GET /coordinates/{dbtype}:{dbid}
- * - GET /coordinates/{taxonomy}/{locations}
- * - GET /coordinates/{taxonomy}/{locations}/feature
- */
+const DEFAULT_LIMIT = 3;
+const MAX_LIMIT = 10;
+const MAX_NESTED = 3;
+
+/* ---------------------------------
+   HELPERS
+---------------------------------- */
+
+function normalizeSize(size?: number): number {
+  if (!size) return DEFAULT_LIMIT;
+  return Math.min(Math.max(size, 1), MAX_LIMIT);
+}
+
+async function fetchJson(url: string): Promise<any> {
+  const res = await fetch(url, {
+    headers: {
+      Accept: "application/json",
+      "Accept-Encoding": "identity" // prevent gzip corruption
+    },
+    compress: false
+  });
+
+  if (!res.ok) {
+    const buf = await res.arrayBuffer();
+    const txt = new TextDecoder("utf-8").decode(buf);
+    throw new Error(`EBI API failed (${res.status}): ${txt.slice(0, 200)}`);
+  }
+
+  const buffer = await res.arrayBuffer();
+  const text = new TextDecoder("utf-8").decode(buffer);
+
+  return JSON.parse(text);
+}
+
+/* ---------------------------------
+   NORMALIZATION
+---------------------------------- */
+
+function normalizeCoordinateResponse(
+  raw: any,
+  action: string
+): any[] {
+  if (!raw) return [];
+
+  // glocation / location endpoints
+  if (Array.isArray(raw)) {
+    return raw.flatMap((r: any) =>
+      Array.isArray(r.locations) ? r.locations : []
+    );
+  }
+
+  // by_accession
+  if (action === "by_accession" && Array.isArray(raw.gnCoordinate)) {
+    return raw.gnCoordinate.map((gc: any) => ({
+      accession: raw.accession,
+      taxid: raw.taxid,
+      chromosome: gc.genomicLocation.chromosome,
+      start: gc.genomicLocation.start,
+      end: gc.genomicLocation.end,
+      reverseStrand: gc.genomicLocation.reverseStrand,
+      assemblyName: gc.genomicLocation.assemblyName,
+      features: gc.feature
+    }));
+  }
+
+  return [];
+}
+
+/* ---------------------------------
+   ESSENTIAL TRIMMERS
+---------------------------------- */
+
+function limit<T>(arr?: T[]): T[] | undefined {
+  return Array.isArray(arr) ? arr.slice(0, MAX_NESTED) : undefined;
+}
+
+function extractFeature(f: any): any {
+  return {
+    type: f.type,
+    description: f.description,
+    original: f.original,
+    variation: limit(f.variation),
+    genomeLocation: f.genomeLocation
+      ? {
+          begin: f.genomeLocation.begin?.position,
+          end: f.genomeLocation.end?.position
+        }
+      : undefined
+  };
+}
+
+function extractLocation(l: any): any {
+  return {
+    accession: l.accession,
+    taxid: l.taxid,
+    chromosome: l.chromosome,
+    geneStart: l.start ?? l.geneStart,
+    geneEnd: l.end ?? l.geneEnd,
+    strand: l.reverseStrand ? "-" : "+",
+    assembly: l.assemblyName,
+    features: limit(l.features)?.map(extractFeature)
+  };
+}
+
+/* ---------------------------------
+   HANDLER
+---------------------------------- */
+
+interface CoordinatesArgs {
+  action: string;
+  size?: number;
+  query?: string;
+  taxonomy?: string;
+  chromosome?: string;
+  gPosition?: string;
+  gStart?: string;
+  gEnd?: string;
+  accession?: string;
+  pPosition?: string;
+  pStart?: string;
+  pEnd?: string;
+  dbtype?: string;
+  dbid?: string;
+  locations?: string;
+}
+
 export class ProteinCoordinatesHandler {
-  async run(args: {
-    action:
-      | "search"
-      | "glocation_single"
-      | "glocation_range"
-      | "location_single"
-      | "location_range"
-      | "by_accession"
-      | "by_dbxref"
-      | "by_taxonomy_locations"
-      | "by_taxonomy_locations_feature";
-    taxonomy?: string;
-    chromosome?: string;
-    gPosition?: string;
-    gStart?: string;
-    gEnd?: string;
-    accession?: string;
-    pPosition?: string;
-    pStart?: string;
-    pEnd?: string;
-    dbtype?: string;
-    dbid?: string;
-    locations?: string;
-    query?: string;
-    size?: number;
-  }) {
-    const {
-      action,
-      taxonomy,
-      chromosome,
-      gPosition,
-      gStart,
-      gEnd,
-      accession,
-      pPosition,
-      pStart,
-      pEnd,
-      dbtype,
-      dbid,
-      locations,
-      query,
-      size
-    } = args;
+  async run(args: CoordinatesArgs): Promise<any> {
+    const size = normalizeSize(args.size);
+    let raw: any;
 
-    let url: string;
-
-    // ----------------------------------------
-    // ROUTING
-    // ----------------------------------------
-    switch (action) {
+    switch (args.action) {
       case "search": {
         const params = new URLSearchParams({
-          ...(query ? { query } : {}),
-          format: "json",
-          size: String(size ?? 25)
+          gene: args.query ?? "",
+          taxid: args.taxonomy ?? "",
+          size: String(size)
         });
 
-        url = `${BASE_URL}/coordinates?${params.toString()}`;
-        break;
+        raw = await fetchJson(`${BASE_URL}/coordinates?${params}`);
+
+        return {
+          structuredContent: {
+            action: args.action,
+            count: raw?.proteins?.length ?? 0,
+            data: raw?.proteins?.slice(0, size) ?? []
+          }
+        };
       }
 
-      case "glocation_single": {
-        if (!taxonomy || !chromosome || !gPosition) {
-          throw new Error("taxonomy, chromosome and gPosition are required");
-        }
-
-        url = `${BASE_URL}/coordinates/glocation/${encodeURIComponent(
-          taxonomy
-        )}/${encodeURIComponent(chromosome)}:${encodeURIComponent(
-          gPosition
-        )}`;
+      case "glocation_single":
+        raw = await fetchJson(
+          `${BASE_URL}/coordinates/glocation/${args.taxonomy}/${args.chromosome}:${args.gPosition}`
+        );
         break;
-      }
 
-      case "glocation_range": {
-        if (!taxonomy || !chromosome || !gStart || !gEnd) {
-          throw new Error("taxonomy, chromosome, gStart and gEnd are required");
-        }
-
-        url = `${BASE_URL}/coordinates/glocation/${encodeURIComponent(
-          taxonomy
-        )}/${encodeURIComponent(chromosome)}:${encodeURIComponent(
-          gStart
-        )}-${encodeURIComponent(gEnd)}`;
+      case "glocation_range":
+        raw = await fetchJson(
+          `${BASE_URL}/coordinates/glocation/${args.taxonomy}/${args.chromosome}:${args.gStart}-${args.gEnd}`
+        );
         break;
-      }
 
-      case "location_single": {
-        if (!accession || !pPosition) {
-          throw new Error("accession and pPosition are required");
-        }
-
-        url = `${BASE_URL}/coordinates/location/${encodeURIComponent(
-          accession
-        )}:${encodeURIComponent(pPosition)}`;
+      case "location_single":
+        raw = await fetchJson(
+          `${BASE_URL}/coordinates/location/${args.accession}:${args.pPosition}`
+        );
         break;
-      }
 
-      case "location_range": {
-        if (!accession || !pStart || !pEnd) {
-          throw new Error("accession, pStart and pEnd are required");
-        }
-
-        url = `${BASE_URL}/coordinates/location/${encodeURIComponent(
-          accession
-        )}:${encodeURIComponent(pStart)}-${encodeURIComponent(pEnd)}`;
+      case "location_range":
+        raw = await fetchJson(
+          `${BASE_URL}/coordinates/location/${args.accession}:${args.pStart}-${args.pEnd}`
+        );
         break;
-      }
 
-      case "by_accession": {
-        if (!accession) {
-          throw new Error("accession is required");
-        }
-
-        url = `${BASE_URL}/coordinates/${encodeURIComponent(accession)}`;
+      case "by_accession":
+        raw = await fetchJson(
+          `${BASE_URL}/coordinates/${args.accession}`
+        );
         break;
-      }
 
-      case "by_dbxref": {
-        if (!dbtype || !dbid) {
-          throw new Error("dbtype and dbid are required");
-        }
-
-        url = `${BASE_URL}/coordinates/${encodeURIComponent(
-          dbtype
-        )}:${encodeURIComponent(dbid)}`;
+      case "by_dbxref":
+        raw = await fetchJson(
+          `${BASE_URL}/coordinates/${args.dbtype}:${args.dbid}`
+        );
         break;
-      }
 
-      case "by_taxonomy_locations": {
-        if (!taxonomy || !locations) {
-          throw new Error("taxonomy and locations are required");
-        }
-
-        url = `${BASE_URL}/coordinates/${encodeURIComponent(
-          taxonomy
-        )}/${encodeURIComponent(locations)}`;
+      case "by_taxonomy_locations":
+        raw = await fetchJson(
+          `${BASE_URL}/coordinates/${args.taxonomy}/${args.locations}`
+        );
         break;
-      }
 
-      case "by_taxonomy_locations_feature": {
-        if (!taxonomy || !locations) {
-          throw new Error("taxonomy and locations are required");
-        }
-
-        url = `${BASE_URL}/coordinates/${encodeURIComponent(
-          taxonomy
-        )}/${encodeURIComponent(locations)}/feature`;
+      case "by_taxonomy_locations_feature":
+        raw = await fetchJson(
+          `${BASE_URL}/coordinates/${args.taxonomy}/${args.locations}/featureSearch`
+        );
         break;
-      }
 
       default:
-        throw new Error(`Unknown coordinates action: ${action}`);
+        throw new Error(`Unknown action: ${args.action}`);
     }
 
-    // ----------------------------------------
-    // FETCH
-    // ----------------------------------------
-    const res = await fetch(url, {
-      headers: { Accept: "application/json" }
-    });
+    const data = normalizeCoordinateResponse(raw, args.action)
+      .slice(0, MAX_LIMIT)
+      .slice(0, size)
+      .map(extractLocation);
 
-    if (!res.ok) {
-      throw new Error(`UniProt Coordinates API failed (${res.status})`);
-    }
-
-    const contentType = res.headers.get("content-type") ?? "";
-    if (!contentType.includes("application/json")) {
-      const text = await res.text();
-      throw new Error(
-        "UniProt Coordinates API returned non-JSON response: " +
-          text.slice(0, 200)
-      );
-    }
-
-    const data: any = await res.json();
-
-    // ----------------------------------------
-    // EMPTY RESULT
-    // ----------------------------------------
-    if (!data || (Array.isArray(data) && data.length === 0)) {
-      return {
-        structuredContent: {
-          action,
-          accession,
-          taxonomy,
-          count: 0
-        }
-      };
-    }
-
-    // ----------------------------------------
-    // PAYLOAD
-    // ----------------------------------------
-    const payload = {
-      action,
-      accession,
-      taxonomy,
-      chromosome,
-      data
-    };
-
-    // ----------------------------------------
-    // MCP RESPONSE
-    // ----------------------------------------
     return {
-      content: [
-        {
-          type: "text",
-          text: JSON.stringify(payload, null, 2) + "\n"
-        }
-      ],
-      structuredContent: payload
+      structuredContent: {
+        action: args.action,
+        count: data.length,
+        data
+      }
     };
   }
 }
