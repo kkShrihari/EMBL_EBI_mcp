@@ -25,6 +25,7 @@ import { EBISummaryIdentificationHandler } from "./handlers/search/handlers/summ
 import { EBISummaryMultiReferenceHandler } from "./handlers/search/handlers/summary_multireference.js";
 import { EBISummaryDetailsHandler } from "./handlers/search/handlers/summary_details.js";
 
+
 // ------------------------------------------------------
 // IMPORT PROTEIN HANDLERS
 // ------------------------------------------------------
@@ -48,8 +49,27 @@ import {PDBeRfamMappingsHandler} from "./handlers/PDBe/handlers/Rfam.js";
 import {PDBePisaInterfaceHandler} from "./handlers/PDBe/handlers/Pisa.js";
 import {PDBeCompoundsHandler} from "./handlers/PDBe/handlers/compounds.js";
 import {PDBeUniProtHandler} from "./handlers/PDBe/handlers/uniprot.js";
-import {PDBeValidationHandler} from "./handlers/PDBe/handlers/validation.js"
-import {PDBeMappingsAndTopologyHandler} from "./handlers/PDBe/handlers/sifts.js"
+import {PDBeValidationHandler} from "./handlers/PDBe/handlers/validation.js";
+import {PDBeMappingsAndTopologyHandler} from "./handlers/PDBe/handlers/sifts.js";
+
+// ------------------------------------------------------
+// IMPORT MGnify HANDLERS
+// ------------------------------------------------------
+import { MGnifyAntiSMASHHandler } from "./handlers/MGnify/handlers/antismash-geneclusters.js";
+import {MGnifyAssembliesHandler} from "./handlers/MGnify/handlers/assemblies.js";
+import {MGnifySuperStudiesHandler} from "./handlers/MGnify/handlers/super-studies.js";
+import {MGnifyRunsHandler} from "./handlers/MGnify/handlers/runs.js";
+import {MGnifyPublicationsHandler} from "./handlers/MGnify/handlers/publications.js";
+import {MGnifyPipelinesHandler} from "./handlers/MGnify/handlers/pipelines.js";
+import {MGnifyPipelineToolsHandler} from "./handlers/MGnify/handlers/pipeline-tools.js";
+import {MGnifyKeggModulesHandler} from "./handlers/MGnify/handlers/kegg-modules.js";
+import {MGnifyKeggClassesHandler} from "./handlers/MGnify/handlers/kegg-classes.js"
+import {MGnifyGenomeSetHandler} from "./handlers/MGnify/handlers/genome-set.js"
+import {MGnifyGenomesSearchHandler} from "./handlers/MGnify/handlers/genomes-search.js"
+import {MGnifyCogsHandler} from "./handlers/MGnify/handlers/cogs.js"
+import {MGnifyExperimentTypesHandler} from "./handlers/MGnify/handlers/experiment-types.js"
+import {MGnifyBiomesHandler} from "./handlers/MGnify/handlers/Biomes.js"
+
 // ------------------------------------------------------
 // MCP SDK IMPORTS
 // ------------------------------------------------------
@@ -99,7 +119,23 @@ const tools = {
   pdbe_compounds: new PDBeCompoundsHandler(),
   pdbe_uniport: new PDBeUniProtHandler(),
   pdbe_validation: new PDBeValidationHandler(),
-  pdbe_sifts: new PDBeMappingsAndTopologyHandler()
+  pdbe_sifts: new PDBeMappingsAndTopologyHandler(),
+
+  // --------- MGnify ----------------
+  mgnify_antismash: new MGnifyAntiSMASHHandler (),
+  mgnify_assemblies: new MGnifyAssembliesHandler(),
+  mgnify_ss: new MGnifySuperStudiesHandler(),
+  mgnify_runs: new MGnifyRunsHandler(),
+  mgnify_publication: new MGnifyPublicationsHandler(),
+  mgnify_pipelines: new MGnifyPipelinesHandler(),
+  mgnify_pipeline_tools: new MGnifyPipelineToolsHandler(),
+  mgnify_keggmodule: new MGnifyKeggModulesHandler(),
+  mgnify_keggclass: new MGnifyKeggClassesHandler(),
+  mgnify_genomeset: new MGnifyGenomeSetHandler(),
+  mgnify_genomesearch: new MGnifyGenomesSearchHandler(),
+  mgnify_cogs: new MGnifyCogsHandler(),
+  mgnify_experiment: new MGnifyExperimentTypesHandler(),
+  mgnify_biomes: new MGnifyBiomesHandler()
 };
 
 // ------------------------------------------------------
