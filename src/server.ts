@@ -70,6 +70,23 @@ import {MGnifyCogsHandler} from "./handlers/MGnify/handlers/cogs.js"
 import {MGnifyExperimentTypesHandler} from "./handlers/MGnify/handlers/experiment-types.js"
 import {MGnifyBiomesHandler} from "./handlers/MGnify/handlers/Biomes.js"
 
+
+// ------------------------------------------------------
+// IMPORT MGnify HANDLERS
+// ------------------------------------------------------
+import {GeneProductsHandler} from "./handlers/QuickGo/handlers/Geneproducts.js"
+import {AnnotationsHandler} from "./handlers/QuickGo/handlers/Annotations.js"
+import {AnnotationExtensionHandler} from "./handlers/QuickGo/handlers/annotation_ext.js"
+import {ECOHandler} from "./handlers/QuickGo/handlers/eco.js"
+
+
+// ------------------------------------------------------
+// IMPORT ChEBI2 HANDLERS
+// ------------------------------------------------------
+import { ChebiSearchHandler } from "./handlers/ChEBI2/handlers/search.js";
+import { ChebiCompoundHandler } from "./handlers/ChEBI2/handlers/compound.js";
+import { ChebiOntologyHandler } from "./handlers/ChEBI2/handlers/ontology.js";
+import { ChebiCalcHandler } from "./handlers/ChEBI2/handlers/calculations.js";
 // ------------------------------------------------------
 // MCP SDK IMPORTS
 // ------------------------------------------------------
@@ -135,9 +152,21 @@ const tools = {
   mgnify_genomesearch: new MGnifyGenomesSearchHandler(),
   mgnify_cogs: new MGnifyCogsHandler(),
   mgnify_experiment: new MGnifyExperimentTypesHandler(),
-  mgnify_biomes: new MGnifyBiomesHandler()
-};
+  mgnify_biomes: new MGnifyBiomesHandler(),
 
+
+//--------------QuickGo---------------------------
+quickgo_gene_pdt: new GeneProductsHandler(),
+quickgo_Annotate: new AnnotationsHandler(),
+quickgo_Annot_ext: new AnnotationExtensionHandler(),
+quickgo_eco: new ECOHandler(),
+
+//--------------chebi2
+chebi2_search: new ChebiSearchHandler(),
+chebi2_compound: new ChebiCompoundHandler(),
+chebi2_ontology: new ChebiOntologyHandler(),
+chebi2_calc: new ChebiCalcHandler()
+};
 // ------------------------------------------------------
 // CREATE MCP SERVER
 // ------------------------------------------------------
